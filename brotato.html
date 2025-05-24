@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Download JSON</title>
+    <script>
+        window.onload = async function() {
+            const response = await fetch('https://raw.githubusercontent.com/parzivalhaliday/parzival/refs/heads/main/save_v2.json');
+            const data = await response.text();
+            
+            const blob = new Blob([data], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'save.json';
+            link.click();
+        };
+    </script>
+</head>
+<body>
+    <style>
+        body{
+            background-color: bisque;
+        }
+    </style>
+    <h1>brotato savesi oto inicek</h1>
+</body>
+</html>

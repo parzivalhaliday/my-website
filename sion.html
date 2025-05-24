@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turret Damage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            position: relative;
+            display: inline-block;
+            margin-top: 50px;
+        }
+
+        #turret-image {
+            width: 300px;
+            height: auto;
+        }
+
+        #result {
+    position: absolute;
+    bottom: 20px; /* Aşağıdaki konumu yukarıya çekmek için artırıldı */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#kulehasari {
+    font-size: 100px;
+    color: #000000;
+    position: absolute;
+    top: -550px; /* Kule hasarı yazısını yukarı taşımak için düzenlendi */
+    left: 120px;
+    transform: translateX(-50%);
+}
+
+
+
+        .stats {
+            display: flex;
+            gap: 20px; /* İki kutu arasında boşluk */
+            justify-content: center;
+            
+        }
+
+        .stat-box {
+            color: white;
+            font-size: 24px;
+            
+            
+
+        }
+
+        .stat-box span {
+            display: block;
+            font-size: 50px;
+            color: #FF5733;
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img id="turret-image" src="turret1.png" alt="Turret Image">
+        <div id="result">
+            <p id="kulehasari">0</p>
+            <div class="stats">
+                <div class="stat-box">
+                    KULELERE
+                    <span id="last-match">0</span>
+                </div>
+                <div class="stat-box">
+                    Tanklanan
+                    <span id="total-damage-towers">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = 'RGAPI-6a75f092-34cc-47a7-81ad-3e04a682965b'; 
+        const region = 'europe';
+        const summonerPuuid = '1zF_wCa_NfIraLVFReL-x65EjKSgLZFdaKp5lGysXpq3m4Gs9reCtKfqadD1TYc6RKykoObD0s4ynQ';
+
+        async function getMatchIds(apiKey, region, summonerPuuid) {
+            const response = await fetch(`https://${region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${summonerPuuid}/ids?start=0&count=10&api_key=${apiKey}`);
+            if (!response.ok) throw new Error('Match history could not be retrieved');
+            return await response.json();
+        }
+
+        async function getMatchData(apiKey, region, matchId) {
+            const response = await fetch(`https://${region}.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${apiKey}`);
+            if (!response.ok) throw new Error('Match data could not be retrieved');
+            return await response.json();
+        }
+
+        async function fetchMatchStats() {
+            try {
+                const matchIds = await getMatchIds(apiKey, region, summonerPuuid);
+                let lastMatchTurretDamage = 0;
+                let lastMatchTotalDamageTaken = 0;
+                let turret_Takedowns = 0;
+
+                if (matchIds.length > 0) {
+                    const lastMatchId = matchIds[0];
+                    const lastMatchData = await getMatchData(apiKey, region, lastMatchId);
+                    const participant = lastMatchData.info.participants.find(p => p.puuid === summonerPuuid);
+                    if (participant) {
+                        lastMatchTurretDamage = participant.damageDealtToTurrets;
+                        lastMatchTotalDamageTaken = participant.totalDamageTaken;
+                        turret_Takedowns = participant.challenges.turretTakedowns;  // Yeni veri
+                    }
+                }
+
+                document.getElementById('kulehasari').textContent = `${turret_Takedowns}`;
+                document.getElementById('last-match').textContent = `${lastMatchTurretDamage}`;
+                document.getElementById('total-damage-towers').textContent = `${lastMatchTotalDamageTaken}`;
+            } catch (error) {
+                document.getElementById('kulehasari').textContent = `Hata: ${error.message}`;
+                document.getElementById('last-match').textContent = `Hata: ${error.message}`;
+                document.getElementById('total-damage-towers').textContent = `Hata: ${error.message}`;
+            }
+        }
+
+        fetchMatchStats();
+
+        setInterval(function() {
+            window.location.reload();
+        }, 100000); 
+    </script>
+</body>
+</html>
